@@ -1,0 +1,38 @@
+# Use postgres/example user/password credentials
+version: '3'
+
+services:
+
+  web:
+    image: nginx
+    #из локального копирует в гостевую
+    volumes:
+      - ./public:/var/www/html
+      - ./.docker/nginx/conf.d:/etc/nginx/conf.d
+    ports:
+      - 80:80
+    restart: always
+    depends_on:
+      - php-fpm
+      - db
+
+  php-fpm:
+    build: .docker
+    restart: always
+    volumes:
+      - ./public:/var/www/html
+      - ./.docker/public:/etc/public/index.php
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16.2
+    volumes:
+     - ./.docker/postgres/data:/var/lib/postgresql/data
+    restart: always
+    environment:
+      - POSTGRES_DB=${DB_DATABASE}
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    ports:
+      - 54321:5432
